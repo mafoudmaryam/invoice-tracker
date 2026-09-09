@@ -1,4 +1,5 @@
 <h1>Invoice {{ invoice.invoice_number }}</h1>
+<p><a href="{% url 'invoice_edit' invoice.pk %}">Edit invoice</a></p>
 <p>Client: {{ invoice.client.name }}</p >
 <p>Status: {{ invoice.status }}</p >
 <p>Issue date: {{ invoice.issue_date }}</p >

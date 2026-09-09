@@ -1,0 +1,11 @@
+<h1>{{ title }}</h1>
+
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <p><button type="submit">Save Client</button></p>
+</form>
+
+<p><a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a></p>

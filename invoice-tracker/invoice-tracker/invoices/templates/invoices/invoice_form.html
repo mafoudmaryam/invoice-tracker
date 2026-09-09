@@ -1,0 +1,52 @@
+<h1>{{ title }}</h1>
+
+{% if not form.fields.client.queryset.exists %}
+  <p>You don't have any clients yet. <a href="{% url 'client_create' %}">Add a client first</a>.</p>
+{% else %}
+<form method="post">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+  <table>
+    {{ form.as_table }}
+  </table>
+
+  <h2>Line Items</h2>
+  {{ formset.management_form }}
+  {{ formset.non_form_errors }}
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Rate</th>
+        {% if formset.can_delete %}<th>Delete</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for lform in formset %}
+        <tr>
+          <td>
+            {{ lform.id }}
+            {{ lform.description }}
+            {{ lform.description.errors }}
+          </td>
+          <td>{{ lform.quantity }} {{ lform.quantity.errors }}</td>
+          <td>{{ lform.rate }} {{ lform.rate.errors }}</td>
+          {% if formset.can_delete %}<td>{{ lform.DELETE }}</td>{% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><button type="submit">Save Invoice</button></p>
+</form>
+{% endif %}
+
+<p>
+  {% if invoice %}
+    <a href="{% url 'invoice_detail' invoice.pk %}">&larr; Back to invoice</a>
+  {% else %}
+    <a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a>
+  {% endif %}
+</p>

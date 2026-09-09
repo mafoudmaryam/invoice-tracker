@@ -32,7 +32,6 @@ def invoice_create(request):
             if formset.is_valid():
                 formset.save()
                 return redirect("invoice_detail", pk=invoice.pk)
-            # line items were invalid: keep the invoice, redisplay errors
         else:
             formset = LineItemFormSet(request.POST)
     else:
@@ -73,9 +72,6 @@ def client_create(request):
             client = form.save(commit=False)
             client.owner = request.user
             client.save()
-            next_url = request.GET.get("next") or "invoice_list"
-            if next_url == "invoice_create":
-                return redirect("invoice_create")
             return redirect("invoice_list")
     else:
         form = ClientForm()
