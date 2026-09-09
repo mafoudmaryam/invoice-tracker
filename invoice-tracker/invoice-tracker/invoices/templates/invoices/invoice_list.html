@@ -1,8 +1,15 @@
 <h1>My Invoices</h1>
+
 <ul>
   {% for invoice in invoices %}
-    <li>{{ invoice.invoice_number }} — {{ invoice.client.name }} — {{ invoice.status }} — ${{ invoice.total|floatformat:2 }}
-</li>
+    <li>
+      <a href="{% url 'invoice_detail' invoice.pk %}">
+        {{ invoice.invoice_number }} — 
+        {{ invoice.client.name }} — 
+        {{ invoice.status }} — 
+        ${{ invoice.total|floatformat:2 }}
+      </a>
+    </li>
   {% empty %}
     <li>No invoices yet.</li>
   {% endfor %}

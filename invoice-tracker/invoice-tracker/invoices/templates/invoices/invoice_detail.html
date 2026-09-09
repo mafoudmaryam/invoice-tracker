@@ -1,0 +1,27 @@
+<h1>Invoice {{ invoice.invoice_number }}</h1>
+<p>Client: {{ invoice.client.name }}</p >
+<p>Status: {{ invoice.status }}</p >
+<p>Issue date: {{ invoice.issue_date }}</p >
+<p>Due date: {{ invoice.due_date }}</p >
+
+<h2>Line Items</h2>
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Description</th>
+    <th>Quantity</th>
+    <th>Rate</th>
+    <th>Subtotal</th>
+  </tr>
+  {% for item in invoice.line_items.all %}
+  <tr>
+    <td>{{ item.description }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>${{ item.rate|floatformat:2 }}</td>
+    <td>${{ item.subtotal|floatformat:2 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>Total: ${{ invoice.total|floatformat:2 }}</h3>
+
+<p><a href=" 'invoice_list' %}">← Back to invoice list</a ></p >
