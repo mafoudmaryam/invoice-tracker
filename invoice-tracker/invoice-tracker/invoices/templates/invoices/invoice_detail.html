@@ -4,6 +4,7 @@
 <h1>Invoice {{ invoice.invoice_number }}</h1>
 
 <div class="actions">
+  <a href="{% url 'invoice_pdf' invoice.pk %}">Download PDF</a>
   <a href="{% url 'invoice_edit' invoice.pk %}">Edit invoice</a>
   <a href="{% url 'invoice_delete' invoice.pk %}">Delete invoice</a>
 </div>

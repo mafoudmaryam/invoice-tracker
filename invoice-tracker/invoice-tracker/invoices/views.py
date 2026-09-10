@@ -2,8 +2,12 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
 from .models import Client, Invoice
 from .forms import ClientForm, InvoiceForm, LineItemFormSet
 
@@ -60,7 +64,72 @@ def invoice_detail(request, pk):
         owner=request.user,
     )
     return render(request, "invoices/invoice_detail.html", {"invoice": invoice})
+@login_required
+def invoice_pdf(request, pk):
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("client").prefetch_related("line_items"),
+        pk=pk,
+        owner=request.user,
+    )
 
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{invoice.invoice_number}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+    left = 1 * inch
+    y = height - 1 * inch
+
+    p.setFont("Helvetica-Bold", 20)
+    p.drawString(left, y, f"Invoice {invoice.invoice_number}")
+    y -= 0.4 * inch
+
+    p.setFont("Helvetica", 11)
+    for line in [
+        f"Client: {invoice.client.name}",
+        f"Status: {invoice.get_status_display()}",
+                f"Issue date: {invoice.issue_date.strftime('%b')} {invoice.issue_date.day}, {invoice.issue_date.year}",
+        f"Due date: {invoice.due_date.strftime('%b')} {invoice.due_date.day}, {invoice.due_date.year}",
+    ]:
+        p.drawString(left, y, line)
+        y -= 0.25 * inch
+
+    y -= 0.2 * inch
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(left, y, "Line Items")
+    y -= 0.3 * inch
+
+    col_desc, col_qty, col_rate, col_sub = left, left + 3 * inch, left + 4 * inch, left + 5 * inch
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(col_desc, y, "Description")
+    p.drawString(col_qty, y, "Qty")
+    p.drawString(col_rate, y, "Rate")
+    p.drawString(col_sub, y, "Subtotal")
+    y -= 0.15 * inch
+    p.line(left, y, left + 6 * inch, y)
+    y -= 0.2 * inch
+
+    p.setFont("Helvetica", 10)
+    for item in invoice.line_items.all():
+        if y < 1.5 * inch:
+            p.showPage()
+            y = height - 1 * inch
+            p.setFont("Helvetica", 10)
+        p.drawString(col_desc, y, item.description[:45])
+        p.drawString(col_qty, y, f"{item.quantity:.2f}")
+        p.drawString(col_rate, y, f"${item.rate:.2f}")
+        p.drawString(col_sub, y, f"${item.subtotal():.2f}")
+        y -= 0.22 * inch
+
+    y -= 0.2 * inch
+    p.line(left, y, left + 6 * inch, y)
+    y -= 0.3 * inch
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(left, y, f"Total: ${invoice.total():.2f}")
+
+    p.showPage()
+    p.save()
+    return response
 
 @login_required
 def invoice_create(request):
