@@ -1,7 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
 <h1>{{ title }}</h1>
 
 {% if not form.fields.client.queryset.exists %}
-  <p>You don't have any clients yet. <a href="{% url 'client_create' %}">Add a client first</a>.</p>
+  <p>You don't have any clients yet. <a href="{% url 'client_create' %}?next=invoice_create">Add a client first</a>.</p>
 {% else %}
 <form method="post">
   {% csrf_token %}
@@ -14,7 +17,7 @@
   <h2>Line Items</h2>
   {{ formset.management_form }}
   {{ formset.non_form_errors }}
-  <table border="1" cellpadding="6" cellspacing="0">
+  <table>
     <thead>
       <tr>
         <th>Description</th>
@@ -50,3 +53,4 @@
     <a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a>
   {% endif %}
 </p>
+{% endblock %}

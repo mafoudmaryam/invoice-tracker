@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}My Clients{% endblock %}
+{% block content %}
+<h1>My Clients</h1>
+
+<div class="actions">
+  <a href="{% url 'client_create' %}">+ New Client</a>
+  <a href="{% url 'invoice_list' %}">&larr; Back to invoices</a>
+</div>
+
+<ul class="plain-list">
+  {% for client in clients %}
+    <li>
+      <strong>{{ client.name }}</strong> — {{ client.email }}
+      <br>
+      <a href="{% url 'client_edit' client.pk %}">Edit</a>
+    </li>
+  {% empty %}
+    <li>No clients yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

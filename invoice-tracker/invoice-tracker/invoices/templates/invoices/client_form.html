@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
 <h1>{{ title }}</h1>
 
 <form method="post">
@@ -8,4 +11,11 @@
   <p><button type="submit">Save Client</button></p>
 </form>
 
-<p><a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a></p>
+<p>
+  {% if client %}
+    <a href="{% url 'client_list' %}">&larr; Back to clients</a>
+  {% else %}
+    <a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a>
+  {% endif %}
+</p>
+{% endblock %}

@@ -1,0 +1,135 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f6f7f9;
+  color: #1f2430;
+  margin: 0;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  background: #1f2430;
+  color: #fff;
+}
+
+.site-header .brand {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+.site-header nav a,
+.site-header nav span {
+  color: #cfd3dc;
+  margin-left: 16px;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.site-header nav a:hover {
+  color: #fff;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #cfd3dc;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+  margin-left: 16px;
+}
+
+.link-button:hover { color: #fff; }
+
+.inline-form { display: inline; }
+
+.container {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 20px;
+}
+
+h1 { margin-top: 0; }
+
+.actions { margin: 16px 0; }
+.actions a { margin-right: 16px; }
+
+a { color: #3457d5; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  margin: 16px 0;
+}
+
+table, th, td {
+  border: 1px solid #e0e2e8;
+}
+
+th, td {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th { background: #eef0f4; }
+
+ul.plain-list {
+  list-style: none;
+  padding: 0;
+}
+
+ul.plain-list li {
+  background: #fff;
+  border: 1px solid #e0e2e8;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+form table { background: transparent; }
+form table, form th, form td { border: none; padding: 6px 4px; }
+
+button, input[type="submit"] {
+  background: #3457d5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button:hover, input[type="submit"]:hover { background: #2a44ac; }
+
+button.danger, .danger button {
+  background: #d64545;
+}
+
+button.danger:hover { background: #ac2a2a; }
+
+input[type="text"], input[type="email"], input[type="password"],
+input[type="date"], input[type="number"], select, textarea {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.messages {
+  list-style: none;
+  padding: 0;
+}
+
+.message {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: #eef0f4;
+}

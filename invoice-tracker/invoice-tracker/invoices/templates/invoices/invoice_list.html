@@ -1,16 +1,21 @@
+{% extends "base.html" %}
+{% block title %}My Invoices{% endblock %}
+{% block content %}
 <h1>My Invoices</h1>
 
-<ul>
+<div class="actions">
+  <a href="{% url 'invoice_create' %}">+ New Invoice</a>
+  <a href="{% url 'client_list' %}">Manage Clients</a>
+</div>
+
+<ul class="plain-list">
   {% for invoice in invoices %}
     <li>
-      <a href="{% url 'invoice_detail' invoice.pk %}">
-        {{ invoice.invoice_number }} — 
-        {{ invoice.client.name }} — 
-        {{ invoice.status }} — 
-        ${{ invoice.total|floatformat:2 }}
-      </a>
+      <a href="{% url 'invoice_detail' invoice.pk %}">{{ invoice.invoice_number }}</a>
+      — {{ invoice.client.name }} — {{ invoice.status }} — ${{ invoice.total|floatformat:2 }}
     </li>
   {% empty %}
     <li>No invoices yet.</li>
   {% endfor %}
 </ul>
+{% endblock %}

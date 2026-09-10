@@ -1,28 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+{% block content %}
 <h1>Invoice {{ invoice.invoice_number }}</h1>
-<p><a href="{% url 'invoice_edit' invoice.pk %}">Edit invoice</a></p>
-<p>Client: {{ invoice.client.name }}</p >
-<p>Status: {{ invoice.status }}</p >
-<p>Issue date: {{ invoice.issue_date }}</p >
-<p>Due date: {{ invoice.due_date }}</p >
+
+<div class="actions">
+  <a href="{% url 'invoice_edit' invoice.pk %}">Edit invoice</a>
+  <a href="{% url 'invoice_delete' invoice.pk %}">Delete invoice</a>
+</div>
+
+<p>Client: {{ invoice.client.name }}</p>
+<p>Status: {{ invoice.status }}</p>
+<p>Issue date: {{ invoice.issue_date|date:"N j, Y" }}</p>
+<p>Due date: {{ invoice.due_date|date:"N j, Y" }}</p>
 
 <h2>Line Items</h2>
-<table border="1" cellpadding="6">
-  <tr>
-    <th>Description</th>
-    <th>Quantity</th>
-    <th>Rate</th>
-    <th>Subtotal</th>
-  </tr>
-  {% for item in invoice.line_items.all %}
-  <tr>
-    <td>{{ item.description }}</td>
-    <td>{{ item.quantity }}</td>
-    <td>${{ item.rate|floatformat:2 }}</td>
-    <td>${{ item.subtotal|floatformat:2 }}</td>
-  </tr>
-  {% endfor %}
+
+<table>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Quantity</th>
+      <th>Rate</th>
+      <th>Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in invoice.line_items.all %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.quantity|floatformat:2 }}</td>
+        <td>${{ item.rate|floatformat:2 }}</td>
+        <td>${{ item.subtotal|floatformat:2 }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4">No line items yet.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
 </table>
 
 <h3>Total: ${{ invoice.total|floatformat:2 }}</h3>
 
-<p><a href=" 'invoice_list' %}">← Back to invoice list</a ></p >
+<p><a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a></p>
+{% endblock %}
