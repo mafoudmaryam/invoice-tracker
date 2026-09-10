@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 from .models import Client, Invoice
 from .forms import ClientForm, InvoiceForm, LineItemFormSet
 
@@ -18,7 +19,33 @@ def signup(request):
         form = UserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
 
+@login_required
+def dashboard(request):
+    invoices = Invoice.objects.filter(owner=request.user).select_related("client").prefetch_related("line_items")
+    today = timezone.localdate()
 
+    totals_by_status = {"draft": 0, "sent": 0, "paid": 0, "overdue": 0}
+    counts_by_status = {"draft": 0, "sent": 0, "paid": 0, "overdue": 0}
+    outstanding_total = 0
+    overdue_invoices = []
+
+    for invoice in invoices:
+        amount = invoice.total()
+        totals_by_status[invoice.status] = totals_by_status.get(invoice.status, 0) + amount
+        counts_by_status[invoice.status] = counts_by_status.get(invoice.status, 0) + 1
+        if invoice.status in ("sent", "overdue"):
+            outstanding_total += amount
+        if invoice.status != "paid" and invoice.due_date < today:
+            overdue_invoices.append(invoice)
+
+    context = {
+        "totals_by_status": totals_by_status,
+        "counts_by_status": counts_by_status,
+        "outstanding_total": outstanding_total,
+        "overdue_invoices": overdue_invoices,
+        "invoice_count": invoices.count(),
+    }
+    return render(request, "invoices/dashboard.html", context)
 @login_required
 def invoice_list(request):
     invoices = Invoice.objects.filter(owner=request.user).select_related("client")

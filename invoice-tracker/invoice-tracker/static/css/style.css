@@ -133,3 +133,40 @@ input[type="date"], input[type="number"], select, textarea {
   margin-bottom: 12px;
   background: #eef0f4;
 }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid #e0e2e8;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.stat-card.highlight {
+  background: #1f2430;
+  color: #fff;
+  border-color: #1f2430;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 4px;
+}

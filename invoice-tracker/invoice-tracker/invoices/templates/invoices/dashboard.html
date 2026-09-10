@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="actions">
+  <a href="{% url 'invoice_list' %}">View all invoices</a>
+  <a href="{% url 'invoice_create' %}">+ New Invoice</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card highlight">
+    <div class="stat-label">Outstanding (sent + overdue)</div>
+    <div class="stat-value">${{ outstanding_total|floatformat:2 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Draft</div>
+    <div class="stat-value">${{ totals_by_status.draft|floatformat:2 }}</div>
+    <div class="stat-sub">{{ counts_by_status.draft }} invoice{{ counts_by_status.draft|pluralize }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Sent</div>
+    <div class="stat-value">${{ totals_by_status.sent|floatformat:2 }}</div>
+    <div class="stat-sub">{{ counts_by_status.sent }} invoice{{ counts_by_status.sent|pluralize }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Paid</div>
+    <div class="stat-value">${{ totals_by_status.paid|floatformat:2 }}</div>
+    <div class="stat-sub">{{ counts_by_status.paid }} invoice{{ counts_by_status.paid|pluralize }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value">${{ totals_by_status.overdue|floatformat:2 }}</div>
+    <div class="stat-sub">{{ counts_by_status.overdue }} invoice{{ counts_by_status.overdue|pluralize }}</div>
+  </div>
+</div>
+
+<h2>Past due</h2>
+{% if overdue_invoices %}
+  <ul class="plain-list">
+    {% for invoice in overdue_invoices %}
+      <li>
+        <a href="{% url 'invoice_detail' invoice.pk %}">{{ invoice.invoice_number }}</a>
+        — {{ invoice.client.name }} — due {{ invoice.due_date|date:"N j, Y" }} — ${{ invoice.total|floatformat:2 }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Nothing past due. Nice.</p>
+{% endif %}
+{% endblock %}
