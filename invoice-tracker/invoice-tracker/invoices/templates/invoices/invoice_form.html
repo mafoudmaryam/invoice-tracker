@@ -6,13 +6,17 @@
 {% if not form.fields.client.queryset.exists %}
   <p>You don't have any clients yet. <a href="{% url 'client_create' %}?next=invoice_create">Add a client first</a>.</p>
 {% else %}
-<form method="post">
+<form method="post" enctype="multipart/form-data" id="invoice-form">
   {% csrf_token %}
 
   {{ form.non_field_errors }}
   <table>
     {{ form.as_table }}
   </table>
+
+  {% if invoice and invoice.attachment %}
+    <p>Current attachment: <a href="{{ invoice.attachment.url }}" target="_blank">{{ invoice.attachment.name }}</a></p>
+  {% endif %}
 
   <h2>Line Items</h2>
   {{ formset.management_form }}
@@ -42,8 +46,88 @@
     </tbody>
   </table>
 
+  <h2>Signature</h2>
+  {% if invoice and invoice.signature %}
+    <p>Current signature:</p>
+    <img src="{{ invoice.signature.url }}" alt="Current signature" class="signature-preview">
+    <p>Draw below to replace it, or leave blank to keep the current one.</p>
+  {% else %}
+    <p>Sign below using your mouse or finger.</p>
+  {% endif %}
+
+  <canvas id="signature-pad" width="400" height="150" class="signature-pad"></canvas>
+  <br>
+  <button type="button" id="clear-signature">Clear signature</button>
+  <input type="hidden" name="signature_data" id="signature_data">
+
   <p><button type="submit">Save Invoice</button></p>
 </form>
+
+<script>
+  (function () {
+    var canvas = document.getElementById('signature-pad');
+    var ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#1f2430';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    var drawing = false;
+    var hasDrawn = false;
+
+    function getPos(evt) {
+      var rect = canvas.getBoundingClientRect();
+      if (evt.touches && evt.touches.length > 0) {
+        return {
+          x: evt.touches[0].clientX - rect.left,
+          y: evt.touches[0].clientY - rect.top
+        };
+      }
+      return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+    }
+
+    function startDraw(evt) {
+      drawing = true;
+      hasDrawn = true;
+      var pos = getPos(evt);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      evt.preventDefault();
+    }
+
+    function draw(evt) {
+      if (!drawing) return;
+      var pos = getPos(evt);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      evt.preventDefault();
+    }
+
+    function stopDraw() {
+      drawing = false;
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDraw);
+
+    document.getElementById('clear-signature').addEventListener('click', function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawn = false;
+    });
+
+    document.getElementById('invoice-form').addEventListener('submit', function () {
+      if (hasDrawn) {
+        document.getElementById('signature_data').value = canvas.toDataURL('image/png');
+      }
+    });
+  })();
+</script>
 {% endif %}
 
 <p>

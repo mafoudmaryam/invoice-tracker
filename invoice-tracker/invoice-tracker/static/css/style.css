@@ -170,3 +170,32 @@ input[type="date"], input[type="number"], select, textarea {
   opacity: 0.7;
   margin-top: 4px;
 }
+.signature-pad {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.signature-preview {
+  max-width: 300px;
+  max-height: 120px;
+  border: 1px solid #e0e2e8;
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px;
+}
+
+.totals-table {
+  max-width: 350px;
+  margin-top: 12px;
+}
+
+.totals-table td {
+  padding: 4px 10px 4px 0;
+}
+
+.totals-table td:last-child {
+  text-align: right;
+}

@@ -41,7 +41,24 @@
   </tbody>
 </table>
 
-<h3>Total: ${{ invoice.total|floatformat:2 }}</h3>
+<table class="totals-table">
+  <tr><td>Subtotal</td><td>${{ invoice.subtotal|floatformat:2 }}</td></tr>
+  <tr><td>Discount ({{ invoice.discount_percent }}%)</td><td>-${{ invoice.discount_value|floatformat:2 }}</td></tr>
+  <tr><td>Tax</td><td>${{ invoice.tax_amount|floatformat:2 }}</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>${{ invoice.total|floatformat:2 }}</strong></td></tr>
+  <tr><td>Deposit paid</td><td>${{ invoice.deposit_amount|floatformat:2 }}</td></tr>
+  <tr><td><strong>Balance due</strong></td><td><strong>${{ invoice.balance_due|floatformat:2 }}</strong></td></tr>
+</table>
+
+{% if invoice.attachment %}
+  <h2>Attachment</h2>
+  <p><a href="{{ invoice.attachment.url }}" target="_blank">{{ invoice.attachment.name }}</a></p>
+{% endif %}
+
+{% if invoice.signature %}
+  <h2>Signature</h2>
+  <img src="{{ invoice.signature.url }}" alt="Signature" class="signature-preview">
+{% endif %}
 
 <p><a href="{% url 'invoice_list' %}">&larr; Back to invoice list</a></p>
 {% endblock %}

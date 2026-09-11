@@ -29,12 +29,27 @@ class Invoice(models.Model):
     due_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def total(self):
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    attachment = models.FileField(upload_to="invoice_attachments/", blank=True, null=True)
+    signature = models.ImageField(upload_to="invoice_signatures/", blank=True, null=True)
+
+    def subtotal(self):
         return sum(item.subtotal() for item in self.line_items.all())
+
+    def discount_value(self):
+        return self.subtotal() * (self.discount_percent / 100)
+
+    def total(self):
+        return self.subtotal() - self.discount_value() + self.tax_amount
+
+    def balance_due(self):
+        return self.total() - self.deposit_amount
 
     def __str__(self):
         return f"Invoice {self.invoice_number} - {self.client.name}"
-
 
 class LineItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="line_items")

@@ -1,15 +1,36 @@
+import base64
+
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from .models import Client, Invoice
 from .forms import ClientForm, InvoiceForm, LineItemFormSet
+
+
+def save_signature_from_post(invoice, request):
+    """If the signature pad was used, decode the base64 PNG data and save it."""
+    data_url = request.POST.get("signature_data")
+    if not data_url or not data_url.startswith("data:image"):
+        return
+    try:
+        header, encoded = data_url.split(",", 1)
+        image_data = base64.b64decode(encoded)
+    except (ValueError, base64.binascii.Error):
+        return
+    invoice.signature.save(
+        f"invoice_{invoice.pk}_signature.png",
+        ContentFile(image_data),
+        save=True,
+    )
 
 
 def signup(request):
@@ -22,6 +43,7 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
+
 
 @login_required
 def dashboard(request):
@@ -50,6 +72,8 @@ def dashboard(request):
         "invoice_count": invoices.count(),
     }
     return render(request, "invoices/dashboard.html", context)
+
+
 @login_required
 def invoice_list(request):
     invoices = Invoice.objects.filter(owner=request.user).select_related("client")
@@ -64,6 +88,8 @@ def invoice_detail(request, pk):
         owner=request.user,
     )
     return render(request, "invoices/invoice_detail.html", {"invoice": invoice})
+
+
 @login_required
 def invoice_pdf(request, pk):
     invoice = get_object_or_404(
@@ -88,7 +114,7 @@ def invoice_pdf(request, pk):
     for line in [
         f"Client: {invoice.client.name}",
         f"Status: {invoice.get_status_display()}",
-                f"Issue date: {invoice.issue_date.strftime('%b')} {invoice.issue_date.day}, {invoice.issue_date.year}",
+        f"Issue date: {invoice.issue_date.strftime('%b')} {invoice.issue_date.day}, {invoice.issue_date.year}",
         f"Due date: {invoice.due_date.strftime('%b')} {invoice.due_date.day}, {invoice.due_date.year}",
     ]:
         p.drawString(left, y, line)
@@ -124,17 +150,59 @@ def invoice_pdf(request, pk):
     y -= 0.2 * inch
     p.line(left, y, left + 6 * inch, y)
     y -= 0.3 * inch
+
+    p.setFont("Helvetica", 11)
+    p.drawString(left, y, "Subtotal:")
+    p.drawRightString(left + 6 * inch, y, f"${invoice.subtotal():.2f}")
+    y -= 0.22 * inch
+
+    p.drawString(left, y, f"Discount ({invoice.discount_percent}%):")
+    p.drawRightString(left + 6 * inch, y, f"-${invoice.discount_value():.2f}")
+    y -= 0.22 * inch
+
+    p.drawString(left, y, "Tax:")
+    p.drawRightString(left + 6 * inch, y, f"${invoice.tax_amount:.2f}")
+    y -= 0.22 * inch
+
     p.setFont("Helvetica-Bold", 13)
-    p.drawString(left, y, f"Total: ${invoice.total():.2f}")
+    p.drawString(left, y, "Total:")
+    p.drawRightString(left + 6 * inch, y, f"${invoice.total():.2f}")
+    y -= 0.3 * inch
+
+    p.setFont("Helvetica", 11)
+    p.drawString(left, y, "Deposit paid:")
+    p.drawRightString(left + 6 * inch, y, f"${invoice.deposit_amount:.2f}")
+    y -= 0.25 * inch
+
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(left, y, "Balance due:")
+    p.drawRightString(left + 6 * inch, y, f"${invoice.balance_due():.2f}")
+    y -= 0.4 * inch
+
+    if invoice.signature:
+        try:
+            if y < 1.8 * inch:
+                p.showPage()
+                y = height - 1 * inch
+            p.setFont("Helvetica", 10)
+            p.drawString(left, y, "Signature:")
+            y -= 0.15 * inch
+            invoice.signature.open("rb")
+            sig_image = ImageReader(invoice.signature)
+            p.drawImage(sig_image, left, y - 1 * inch, width=2.5 * inch, height=1 * inch, mask="auto")
+            invoice.signature.close()
+        except Exception:
+            pass
 
     p.showPage()
     p.save()
     return response
 
+
 @login_required
 def invoice_create(request):
     if request.method == "POST":
-        form = InvoiceForm(request.POST, owner=request.user)
+        form = InvoiceForm(request.POST, request.FILES, owner=request.user)
         if form.is_valid():
             invoice = form.save(commit=False)
             invoice.owner = request.user
@@ -142,6 +210,7 @@ def invoice_create(request):
             formset = LineItemFormSet(request.POST, instance=invoice)
             if formset.is_valid():
                 formset.save()
+                save_signature_from_post(invoice, request)
                 messages.success(request, f"Invoice {invoice.invoice_number} was created.")
                 return redirect("invoice_detail", pk=invoice.pk)
         else:
@@ -160,11 +229,12 @@ def invoice_create(request):
 def invoice_edit(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk, owner=request.user)
     if request.method == "POST":
-        form = InvoiceForm(request.POST, instance=invoice, owner=request.user)
+        form = InvoiceForm(request.POST, request.FILES, instance=invoice, owner=request.user)
         formset = LineItemFormSet(request.POST, instance=invoice)
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
+            save_signature_from_post(invoice, request)
             messages.success(request, f"Invoice {invoice.invoice_number} was updated.")
             return redirect("invoice_detail", pk=invoice.pk)
     else:

@@ -6,7 +6,10 @@ from .models import Client, Invoice, LineItem
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ["client", "invoice_number", "status", "issue_date", "due_date"]
+        fields = [
+            "client", "invoice_number", "status", "issue_date", "due_date",
+            "discount_percent", "tax_amount", "deposit_amount", "attachment",
+        ]
         widgets = {
             "issue_date": forms.DateInput(attrs={"type": "date"}),
             "due_date": forms.DateInput(attrs={"type": "date"}),
